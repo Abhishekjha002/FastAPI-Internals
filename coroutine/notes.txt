@@ -1,0 +1,57 @@
+# What is Coroutine?
+Coroutine is just the very fancy term for the thing returned by an async def function. See line 27.
+Python knows that it is something like a function, that it can start and that it will end at some point, 
+but that it might be paused internally too, whenever there is an await inside of it.
+
+But all this functionality of using asynchronous code with async and await is many times summarized as using "coroutines". 
+It is comparable to the main key feature of Go, the "Goroutines".
+
+# When to use it?
+- When you have high cpu bound operations then it is better to process each request on different processor or core.
+- But when you have I/O bound or network bound task and you dont use couroutine(async/await) then your each process waits for 
+I/O bound completion. And CPU is idle. So in this case, it is better to use coroutine on  each process. Meaning whenever we have 
+I/O bound operations then instead of blocking the main thread we wait for it and process other request. So choose asyncio for 
+managing many waiting task
+
+
+# What is event loop?
+- In python asyncio is the core that manages and distribute tasks. Think of it as central hub where task circulating
+around it, waiting for their turn to be executed. Each task takes its turn in  the center, and its either executed immediately
+or paused if it is waiting for something. 
+- When task awaits, it steps aside making the room for another task to execute. Ensure the loop is always efficiently
+utilised. Once the awaited operation is complete the task will resume ensuring a smooth program flow.
+
+
+# Difference between couroutine and multiple thread?
+Let's Compare Two Approaches
+1. Multithreading (blocking I/O, GIL released)
+
+import time
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/thread")
+def handle_blocking():
+    time.sleep(5)  # GIL released during sleep
+    return "done"
+Each request gets a new thread.
+
+Python can run multiple time.sleep()s concurrently (because the GIL is released).
+
+But each thread uses memory, has overhead, and there's a limit to how many threads you can manage (often ~1000).
+
+2. Async/Await (non-blocking I/O, event loop)
+
+import asyncio
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/async")
+async def handle_async():
+    await asyncio.sleep(5)  # non-blocking, zero threads
+    return "done"
+This uses a single thread and no new threads are spawned.
+Thousands of requests can be handled concurrently.
+It's super lightweight and ideal for web servers, API calls, etc.
